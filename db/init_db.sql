@@ -34,6 +34,9 @@ CREATE TABLE IF NOT EXISTS transactions (
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
+-- ✅ Ensure is_deleted column is added separately
+ALTER TABLE transactions ADD COLUMN is_deleted INTEGER DEFAULT 0;
+
 CREATE TABLE IF NOT EXISTS journals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     transaction_id INTEGER,
