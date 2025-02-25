@@ -13,3 +13,6 @@ class CustomerController(BaseController):
 
     def delete_customer(self, customer_id):
         self.model.delete_customer(customer_id)
+        
+    def update_customer(self, customer_id, name, phone, email, address):
+        return self.model.update_customer(customer_id, name, phone, email, address)
