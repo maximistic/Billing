@@ -1,17 +1,20 @@
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QPushButton, QLineEdit, QLabel
 
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QPushButton, QLineEdit, QLabel
+
 class CustomerView(QDialog):
-    def __init__(self, controller):
+    def __init__(self, controller, customer=None):
         super().__init__()
         self.controller = controller
-        self.setWindowTitle("Add Customer")
+        self.customer_id = customer[0] if customer else None  # ✅ Detect edit mode
+        self.setWindowTitle("Edit Customer" if self.customer_id else "Add Customer")
+        self.setFixedSize(500, 400)
 
         layout = QVBoxLayout()
-
-        self.name_input = QLineEdit()
-        self.phone_input = QLineEdit()
-        self.email_input = QLineEdit()
-        self.address_input = QLineEdit()
+        self.name_input = QLineEdit(customer[1] if customer else "")
+        self.phone_input = QLineEdit(customer[2] if customer else "")
+        self.email_input = QLineEdit(customer[3] if customer else "")
+        self.address_input = QLineEdit(customer[4] if customer else "")
 
         layout.addWidget(QLabel("Name"))
         layout.addWidget(self.name_input)
@@ -22,17 +25,28 @@ class CustomerView(QDialog):
         layout.addWidget(QLabel("Address"))
         layout.addWidget(self.address_input)
 
-        add_button = QPushButton("Add Customer")
-        add_button.clicked.connect(self.add_customer)
-        layout.addWidget(add_button)
+        save_button = QPushButton("Save")
+        save_button.clicked.connect(self.save_customer)
+        layout.addWidget(save_button)
 
         self.setLayout(layout)
 
-    def add_customer(self):
+    def save_customer(self):
+        """ Save or update customer """
         name = self.name_input.text()
         phone = self.phone_input.text()
         email = self.email_input.text()
         address = self.address_input.text()
-        
-        self.controller.add_customer(name, phone, email, address)
+
+        if not name:
+            print("Name is required!")
+            return
+
+        if self.customer_id:
+            self.controller.update_customer(self.customer_id, name, phone, email, address)  # ✅ Update existing customer
+            print("Customer updated successfully!")
+        else:
+            self.controller.add_customer(name, phone, email, address)  # ✅ Insert new customer
+            print("Customer saved successfully!")
+
         self.close()
