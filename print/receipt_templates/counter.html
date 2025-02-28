@@ -1,0 +1,23 @@
+<!-- customer_receipt.html -->
+<div class="header">
+    <h2>{{company_name}}</h2>
+    <p>{{company_address}}</p>
+  </div>
+  
+  <table class="items">
+    {% for item in items %}
+    <tr>
+      <td>{{ item.name }}</td>
+      <td>{{ item.quantity }}</td>
+      <td>{{ item.unit_price }}</td>
+      <td>{{ item.total }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  
+  <!-- Dynamic Balance Calculation -->
+  <div class="totals">
+    <p>Grand Total: {{ grand_total }}</p>
+    <p>Paid: {{ paid_amount }}</p>
+    <p>Balance: {{ balance }}</p>
+  </div>
