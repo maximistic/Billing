@@ -1,60 +1,79 @@
-CREATE TABLE IF NOT EXISTS customers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    phone TEXT,
-    email TEXT,
+-- Customers
+CREATE TABLE Customer (
+    id INTEGER PRIMARY KEY,
+    name TEXT UNIQUE,
     address TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    email TEXT,
+    phone TEXT,
+    custom_pricing_enabled BOOLEAN,  
+    is_deleted BOOLEAN DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS suppliers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+-- Suppliers
+CREATE TABLE Supplier (
+    id INTEGER PRIMARY KEY,
+    name TEXT UNIQUE,
     contact TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    is_deleted BOOLEAN DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    price REAL NOT NULL,
-    stock INTEGER DEFAULT 0
+-- Products
+CREATE TABLE Product (
+    id INTEGER PRIMARY KEY,
+    sku TEXT UNIQUE,
+    name TEXT,
+    default_price REAL,
+    is_deleted BOOLEAN DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS transactions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_id INTEGER,
-    supplier_id INTEGER,
-    product_id INTEGER,
-    amount REAL,
-    transaction_type TEXT CHECK(transaction_type IN ('credit','debit')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(id),
-    FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
+-- Customer-specific pricing
+CREATE TABLE CustomerProductPrice (
+    customer_id INTEGER REFERENCES Customer(id),
+    product_id INTEGER REFERENCES Product(id),
+    price REAL,
+    PRIMARY KEY (customer_id, product_id)
 );
 
--- ✅ Ensure is_deleted column is added separately
-ALTER TABLE transactions ADD COLUMN is_deleted INTEGER DEFAULT 0;
+-- Invoices
+CREATE TABLE Invoice (
+    id INTEGER PRIMARY KEY,
+    invoice_number TEXT UNIQUE,
+    date DATE,
+    customer_id INTEGER REFERENCES Customer(id),
+    discount REAL DEFAULT 0,
+    total_amount REAL,
+    paid_amount REAL,
+    payment_mode TEXT,  
+    narration TEXT,
+    is_deleted BOOLEAN DEFAULT 0
+);
 
-CREATE TABLE IF NOT EXISTS journals (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    transaction_id INTEGER,
-    ledger_type TEXT CHECK(ledger_type IN ('cash','bank')),
-    amount REAL,
-    credit REAL,
+-- Invoice line items (products)
+CREATE TABLE InvoiceItem (
+    id INTEGER PRIMARY KEY,
+    invoice_id INTEGER REFERENCES Invoice(id),
+    product_id INTEGER REFERENCES Product(id),
+    quantity INTEGER,
+    price REAL  
+);
+
+-- Ledger (Cash/Bank transactions)
+CREATE TABLE LedgerEntry (
+    id INTEGER PRIMARY KEY,
+    date DATE,
+    account_type TEXT,  
     debit REAL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (transaction_id) REFERENCES transactions(id)
+    credit REAL,
+    narration TEXT,
+    invoice_id INTEGER REFERENCES Invoice(id) 
 );
 
-CREATE TABLE IF NOT EXISTS customer_prices (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_id INTEGER,
-    product_id INTEGER,
-    custom_price REAL NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(id),
-    FOREIGN KEY (product_id) REFERENCES products(id),
-    UNIQUE(customer_id, product_id)
+-- Journal (Manual entries)
+CREATE TABLE JournalEntry (
+    id INTEGER PRIMARY KEY,
+    date DATE,
+    account_type TEXT,  -- Cash/Bank
+    entry_type TEXT,  -- Debit/Credit
+    amount REAL,
+    narration TEXT
 );
